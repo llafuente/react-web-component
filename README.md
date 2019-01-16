@@ -45,8 +45,8 @@ Then in your HTML simply use your web component, in this case named `my-componen
 <my-component></my-component>
 ```
 
-By default the `shadowRoot` is enabled. This allows for styles isolation and prevents component styles from 
-*bleeding out* to other parts of the application. It also prevents outer styles from affecting the web component you are creating. 
+By default the `shadowRoot` is enabled. This allows for styles isolation and prevents component styles from
+*bleeding out* to other parts of the application. It also prevents outer styles from affecting the web component you are creating.
 
 In case that you want your component to inherit styles from the parent you can opt-out of the shadowRoot.
 To do that you can pass an **optional** parameter to the `create` method:
@@ -85,7 +85,6 @@ Web Components have their own lifecycle methods so we proxy them to your React C
 
 | Web Component            | React Component              |
 | -----------------------  | ---------------------------- |
-| attachedCallback         | webComponentAttached         |
 | connectedCallback        | webComponentConnected        |
 | disconnectedCallback     | webComponentDisconnected     |
 | attributeChangedCallback | webComponentAttributeChanged |
@@ -103,7 +102,7 @@ class App extends React.Component {
     // Regular React lifecycle method
   }
 
-  webComponentAttached() {
+  webComponentConnected() {
     // will be called when the Web Component has been attached
   }
 

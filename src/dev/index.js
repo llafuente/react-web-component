@@ -13,7 +13,6 @@ module.exports = {
     let appInstance;
 
     const lifeCycleHooks = {
-      attachedCallback: 'webComponentAttached',
       connectedCallback: 'webComponentConnected',
       disconnectedCallback: 'webComponentDisconnected',
       attributeChangedCallback: 'webComponentAttributeChanged',
@@ -35,62 +34,53 @@ module.exports = {
       }
     }
 
-    const proto = Object.create(HTMLElement.prototype, {
-      attachedCallback: {
-        value: function() {
-          let webComponentInstance = this;
-          let mountPoint = webComponentInstance;
+    const proto = class extends HTMLElement {
+      connectedCallback() {
+        let webComponentInstance = this;
+        let mountPoint = webComponentInstance;
 
-          if (useShadowDom) {
-            // Re-assign the webComponentInstance (this) to the newly created shadowRoot
-            webComponentInstance = webComponentInstance.createShadowRoot();
+        if (useShadowDom) {
+          // Re-assign the mountPoint to the newly created "div" element
+          mountPoint = document.createElement('div');
 
-            // Re-assign the mountPoint to the newly created "div" element
-            mountPoint = document.createElement('div');
+          const shadowRoot = this.attachShadow({ mode: 'open' });
+          const styles = getStyleElementsFromReactWebComponentStyleLoader();
+          for (var i = 0; i < styles.length; i++) {
+            shadowRoot.appendChild(styles[i].cloneNode(true));
+          }
+          shadowRoot.appendChild(mountPoint);
 
-            // Move all of the styles assigned to the react component inside of the shadowRoot.
-            // By default this is not used, only if the library is explicitly installed
-            const styles = getStyleElementsFromReactWebComponentStyleLoader();
-            styles.forEach((style) => {
-              webComponentInstance.appendChild(style.cloneNode(webComponentInstance));
-            });
+          retargetEvents(webComponentInstance);
+        }
 
-            webComponentInstance.appendChild(mountPoint);
+        ReactDOM.render(app, mountPoint, function () {
+          appInstance = this;
 
-            retargetEvents(webComponentInstance);
+          // Assign web components attributes to component state
+          const obj = extractAttributes(webComponentInstance);
+          for (let k in obj) {
+            appInstance.state[k] = obj[k];
           }
 
-          ReactDOM.render(app, mountPoint, function () {
-            appInstance = this;
-            appInstance.props = extractAttributes(webComponentInstance);
-
-            callConstructorHook(webComponentInstance);
-            callLifeCycleHook('attachedCallback');
-          });
-        },
-      },
-      connectedCallback: {
-        value: () => {
+          callConstructorHook(webComponentInstance);
+          //callLifeCycleHook('attachedCallback');
           callLifeCycleHook('connectedCallback');
-        },
-      },
-      disconnectedCallback: {
-        value: () => {
-          callLifeCycleHook('disconnectedCallback');
-        },
-      },
-      attributeChangedCallback: {
-        value: (attributeName, oldValue, newValue, namespace) => {
-          callLifeCycleHook('attributeChangedCallback', [attributeName, oldValue, newValue, namespace]);
-        },
-      },
-      adoptedCallback: {
-        value: (oldDocument, newDocument) => {
-          callLifeCycleHook('adoptedCallback', [oldDocument, newDocument]);
-        },
-      },
-    });
+        });
+      }
 
-    document.registerElement(tagName, { prototype: proto });
+      disconnectedCallback() {
+        callLifeCycleHook('disconnectedCallback');
+      }
+
+      attributeChangedCallback(attributeName, oldValue, newValue, namespace) {
+        callLifeCycleHook('attributeChangedCallback', [attributeName, oldValue, newValue, namespace]);
+      }
+
+      adoptedCallback(oldDocument, newDocument) {
+        callLifeCycleHook('adoptedCallback', [oldDocument, newDocument]);
+      }
+    };
+
+    customElements.define(tagName, proto);
   },
 };
