@@ -102,11 +102,25 @@ class App extends React.Component {
     // Regular React lifecycle method
   }
 
+  webComponentConstructed(hostElement, attributes) {
+    // save hostElement if you want to fire events
+    // hostElement.dispatchEvent(new CustomEvent("ready", {detail: null}))
+
+    // attributes is the list of attributes at hostElement
+    // here you need to cast those attributes and maybe set to state
+    // this.setState(attributes || {/* default */});
+  }
+
   webComponentConnected() {
     // will be called when the Web Component has been attached
   }
 
   render() {
+    // web component is initited after the first render, just give React something empty
+    if (!this.state) {
+      return <div></div>;
+    }
+
     return <div>Hello World!</div>;
   }
 }

@@ -10,6 +10,7 @@ module.exports = {
    * @param {boolean} useShadowDom - If the value is set to "true" the web component will use the `shadowDom`. The default value is true.
    */
   create: (app, tagName, useShadowDom = true) => {
+    console.log("app", app);
     let appInstance;
 
     const lifeCycleHooks = {
@@ -21,7 +22,7 @@ module.exports = {
 
     function callConstructorHook(webComponentInstance) {
       if (appInstance['webComponentConstructed']) {
-        appInstance['webComponentConstructed'].apply(appInstance, [webComponentInstance])
+        appInstance['webComponentConstructed'].apply(appInstance, [webComponentInstance, extractAttributes(webComponentInstance)])
       }
     }
 
@@ -56,14 +57,7 @@ module.exports = {
         ReactDOM.render(app, mountPoint, function () {
           appInstance = this;
 
-          // Assign web components attributes to component state
-          const obj = extractAttributes(webComponentInstance);
-          for (let k in obj) {
-            appInstance.state[k] = obj[k];
-          }
-
           callConstructorHook(webComponentInstance);
-          //callLifeCycleHook('attachedCallback');
           callLifeCycleHook('connectedCallback');
         });
       }
